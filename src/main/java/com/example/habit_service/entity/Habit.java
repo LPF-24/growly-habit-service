@@ -19,10 +19,12 @@ public class Habit {
     private Long id;
 
     @NotBlank
+    @Column(name = "name", nullable = false)
     private String name;
 
     private String description;
 
+    @Column(name = "created_at", nullable = false)
     private LocalDate createdAt;
 
     private boolean active = true;
