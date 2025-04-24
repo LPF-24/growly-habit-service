@@ -37,4 +37,16 @@ public class HabitService {
     public void deleteHabit(long habitId) {
         habitRepository.deleteById(habitId);
     }
+
+    public HabitResponseDTO updateHabit(long habitId, HabitRequestDTO dto) {
+        Habit habitToUpdate = habitRepository.findById(habitId)
+                .orElseThrow(() -> new EntityNotFoundException("Habit with id " + habitId + " not found"));
+
+        if (dto.getName() != null && !dto.getName().isEmpty()) habitToUpdate.setName(dto.getName());
+        if (dto.getDescription() != null && !dto.getDescription().isEmpty()) habitToUpdate.setDescription(dto.getDescription());
+        if (dto.getActive() != null) habitToUpdate.setActive(dto.getActive());
+
+        habitRepository.save(habitToUpdate);
+        return habitMapper.toResponseDTO(habitToUpdate);
+    }
 }

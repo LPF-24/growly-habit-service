@@ -2,10 +2,12 @@ package com.example.habit_service.controller;
 
 import com.example.habit_service.dto.HabitRequestDTO;
 import com.example.habit_service.dto.HabitResponseDTO;
+import com.example.habit_service.exception.ErrorUtil;
 import com.example.habit_service.service.HabitEventPublisher;
 import com.example.habit_service.service.HabitService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,12 +40,17 @@ public class HabitController {
     }
 
     @PostMapping
-    public ResponseEntity<HabitResponseDTO> newHabit(@RequestBody @Valid HabitRequestDTO dto) {
+    public ResponseEntity<HabitResponseDTO> newHabit(@RequestBody @Valid HabitRequestDTO dto,
+                                                     BindingResult bindingResult) {
+        if (bindingResult.hasErrors())
+            ErrorUtil.throwIfHasErrors(bindingResult);
+
         return ResponseEntity.ok(habitService.createHabit(dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteHabit(@PathVariable Long id) {
+        habitService.deleteHabit(id);
         return ResponseEntity.ok("Habit with id " + id + " successfully removed.");
     }
 
@@ -51,5 +58,14 @@ public class HabitController {
     public ResponseEntity<String> completeHabit(@PathVariable String id) {
         publisher.publishHabitCompleted(id);
         return ResponseEntity.ok("Habit " + id + "marked as completed.");
+    }
+
+    @RequestMapping(value = "/{id}", method = {RequestMethod.PATCH, RequestMethod.POST})
+    public ResponseEntity<HabitResponseDTO> updateHabit(@PathVariable Long id,
+                                                        @RequestBody @Valid HabitRequestDTO dto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors())
+            ErrorUtil.throwIfHasErrors(bindingResult);
+
+        return ResponseEntity.ok(habitService.updateHabit(id, dto));
     }
 }
