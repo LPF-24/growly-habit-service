@@ -3,7 +3,7 @@ package com.example.habit_service.service;
 import com.example.habit_service.dto.HabitRequestDTO;
 import com.example.habit_service.dto.HabitResponseDTO;
 import com.example.habit_service.entity.Habit;
-import com.example.habit_service.mapper.HabitMapper;
+import com.example.habit_service.mapper.HabitModelMapper;
 import com.example.habit_service.repository.HabitRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -15,23 +15,23 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HabitService {
     private final HabitRepository habitRepository;
-    private final HabitMapper habitMapper;
+    private final HabitModelMapper habitModelMapper;
 
     public List<HabitResponseDTO> getAllHabitsByPersonId(long personId) {
-        return habitRepository.findByPersonId(personId).stream().map(habitMapper::toResponseDTO).toList();
+        return habitRepository.findByPersonId(personId).stream().map(habitModelMapper::toResponseDTO).toList();
     }
 
     public HabitResponseDTO getHabitById(long habitId) {
         Habit foundHabit = habitRepository.findById(habitId)
                 .orElseThrow(() -> new EntityNotFoundException("Habit with this id can't be found!"));
 
-        return habitMapper.toResponseDTO(foundHabit);
+        return habitModelMapper.toResponseDTO(foundHabit);
     }
 
     public HabitResponseDTO createHabit(HabitRequestDTO dto) {
-        Habit habit = habitMapper.fromRequestToHabit(dto);
+        Habit habit = habitModelMapper.fromRequestToHabit(dto);
         habitRepository.save(habit);
-        return habitMapper.toResponseDTO(habit);
+        return habitModelMapper.toResponseDTO(habit);
     }
 
     public void deleteHabit(long habitId) {
@@ -47,6 +47,6 @@ public class HabitService {
         if (dto.getActive() != null) habitToUpdate.setActive(dto.getActive());
 
         habitRepository.save(habitToUpdate);
-        return habitMapper.toResponseDTO(habitToUpdate);
+        return habitModelMapper.toResponseDTO(habitToUpdate);
     }
 }

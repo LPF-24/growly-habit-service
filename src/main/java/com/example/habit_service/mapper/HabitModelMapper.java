@@ -11,7 +11,7 @@ import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor
-public class HabitMapper {
+public class HabitModelMapper {
     private final ModelMapper modelMapper;
 
     public Habit toEntity(HabitRequestDTO dto) {
