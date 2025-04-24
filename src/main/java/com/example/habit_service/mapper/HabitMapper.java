@@ -27,4 +27,8 @@ public class HabitMapper {
     public HabitResponseDTO toResponseDTO(Habit habit) {
         return modelMapper.map(habit, HabitResponseDTO.class);
     }
+
+    public Habit fromRequestToHabit(HabitRequestDTO dto) {
+        return modelMapper.map(dto, Habit.class);
+    }
 }

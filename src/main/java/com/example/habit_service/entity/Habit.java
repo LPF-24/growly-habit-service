@@ -10,6 +10,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
+@Table(name = "habit")
 @NoArgsConstructor
 @Getter
 @Setter
