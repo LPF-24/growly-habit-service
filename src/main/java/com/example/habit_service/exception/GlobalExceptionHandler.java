@@ -1,5 +1,6 @@
 package com.example.habit_service.exception;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,6 +13,13 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handleValidationException(ValidationException e) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", e.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleEntityNotFoundException(EntityNotFoundException e) {
         Map<String, String> response = new HashMap<>();
         response.put("error", e.getMessage());
         return ResponseEntity.badRequest().body(response);

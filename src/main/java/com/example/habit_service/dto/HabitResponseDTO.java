@@ -1,9 +1,5 @@
 package com.example.habit_service.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.time.LocalDate;
 
 public class HabitResponseDTO {

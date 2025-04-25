@@ -6,14 +6,12 @@ import com.example.habit_service.entity.Habit;
 import com.example.habit_service.mapper.HabitMapper;
 import com.example.habit_service.repository.HabitRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
-//@RequiredArgsConstructor
 public class HabitService {
     private final HabitRepository habitRepository;
     private final HabitMapper habitMapper;

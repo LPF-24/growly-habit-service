@@ -12,6 +12,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface HabitMapper {
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     Habit toEntity(HabitRequestDTO dto);
 
