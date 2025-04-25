@@ -3,35 +3,41 @@ package com.example.habit_service.service;
 import com.example.habit_service.dto.HabitRequestDTO;
 import com.example.habit_service.dto.HabitResponseDTO;
 import com.example.habit_service.entity.Habit;
-import com.example.habit_service.mapper.HabitModelMapper;
+import com.example.habit_service.mapper.HabitMapper;
 import com.example.habit_service.repository.HabitRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class HabitService {
     private final HabitRepository habitRepository;
-    private final HabitModelMapper habitModelMapper;
+    private final HabitMapper habitMapper;
+
+    public HabitService(HabitRepository habitRepository, HabitMapper habitMapper) {
+        this.habitRepository = habitRepository;
+        this.habitMapper = habitMapper;
+    }
 
     public List<HabitResponseDTO> getAllHabitsByPersonId(long personId) {
-        return habitRepository.findByPersonId(personId).stream().map(habitModelMapper::toResponseDTO).toList();
+        return habitRepository.findByPersonId(personId).stream().map(habitMapper::toResponseDTO).toList();
     }
 
     public HabitResponseDTO getHabitById(long habitId) {
         Habit foundHabit = habitRepository.findById(habitId)
                 .orElseThrow(() -> new EntityNotFoundException("Habit with this id can't be found!"));
 
-        return habitModelMapper.toResponseDTO(foundHabit);
+        return habitMapper.toResponseDTO(foundHabit);
     }
 
     public HabitResponseDTO createHabit(HabitRequestDTO dto) {
-        Habit habit = habitModelMapper.fromRequestToHabit(dto);
-        habitRepository.save(habit);
-        return habitModelMapper.toResponseDTO(habit);
+        Habit habit = habitMapper.toEntity(dto);
+        habit.setCreatedAt(LocalDate.now());
+        return habitMapper.toResponseDTO(habitRepository.save(habit));
     }
 
     public void deleteHabit(long habitId) {
@@ -42,11 +48,7 @@ public class HabitService {
         Habit habitToUpdate = habitRepository.findById(habitId)
                 .orElseThrow(() -> new EntityNotFoundException("Habit with id " + habitId + " not found"));
 
-        if (dto.getName() != null && !dto.getName().isEmpty()) habitToUpdate.setName(dto.getName());
-        if (dto.getDescription() != null && !dto.getDescription().isEmpty()) habitToUpdate.setDescription(dto.getDescription());
-        if (dto.getActive() != null) habitToUpdate.setActive(dto.getActive());
-
-        habitRepository.save(habitToUpdate);
-        return habitModelMapper.toResponseDTO(habitToUpdate);
+        habitMapper.updateHabitFromDtoWithFixedFields(dto, habitToUpdate);
+        return habitMapper.toResponseDTO(habitRepository.save(habitToUpdate));
     }
 }
