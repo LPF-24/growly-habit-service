@@ -1,13 +1,27 @@
 package com.example.habit_service.dto;
 
+import com.example.habit_service.util.SwaggerConstants;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDate;
 
 public class HabitResponseDTO {
+    @Schema(description = SwaggerConstants.ID_DESC, example = SwaggerConstants.ID_EXAMPLE)
     private Long id;
+
+    @Schema(description = SwaggerConstants.NAME_DESC, example = SwaggerConstants.NAME_EXAMPLE)
     private String name;
+
+    @Schema(description = SwaggerConstants.DESCRIPTION_DESC, example = SwaggerConstants.DESCRIPTION_EXAMPLE)
     private String description;
+
+    @Schema(description = SwaggerConstants.CREATED_AT_DESC, example = SwaggerConstants.CREATED_AT_EXAMPLE)
     private LocalDate createdAt;
+
+    @Schema(description = SwaggerConstants.ACTIVE_DESC, example = SwaggerConstants.ACTIVE_EXAMPLE)
     private boolean active;
+
+    @Schema(description = SwaggerConstants.PERSON_ID_DESC, example = SwaggerConstants.PERSON_ID_EXAMPLE)
     private Long personId;
 
     public HabitResponseDTO() {
