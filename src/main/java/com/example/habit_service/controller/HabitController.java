@@ -9,6 +9,8 @@ import com.example.habit_service.service.HabitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -61,16 +63,26 @@ public class HabitController {
         return ResponseEntity.ok(habitService.getHabitById(id));
     }
 
-    @Operation(summary = "Create a habit", description = "Creates a new habit.",
+    @Operation(summary = "Create a habit.", description = "Adds a new habit.",
+            requestBody = @RequestBody(
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "CreateHabitRequest",
+                                    summary = "Example habit creation request",
+                                    value = "{\n" +
+                                            "  \"name\": \"Drink water\",\n" +
+                                            "  \"description\": \"Drink 2L of water every day\",\n" +
+                                            "  \"active\": true,\n" +
+                                            "  \"personId\": 45\n" +
+                                            "}"
+                            )
+                    )
+            ),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Habit successfully created.",
-                            content = @Content(schema = @Schema(implementation = HabitResponseDTO.class))),
-                    @ApiResponse(responseCode = "422", description = "Validation error.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
-                    @ApiResponse(responseCode = "500", description = "Internal server error.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
-            })
-    @PostMapping
+                    @ApiResponse(responseCode = "200", description = "Habit successfully created.")
+            }
+    )
     public ResponseEntity<HabitResponseDTO> newHabit(@RequestBody @Valid HabitRequestDTO dto, BindingResult bindingResult) {
         if (bindingResult.hasErrors())
             ErrorUtil.throwIfHasErrors(bindingResult);
@@ -99,21 +111,21 @@ public class HabitController {
         return ResponseEntity.ok("Habit with id " + id + " successfully removed.");
     }
 
-    @Operation(summary = "Update a habit", description = "Updates a habit by ID.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Habit successfully updated.",
-                            content = @Content(schema = @Schema(implementation = HabitResponseDTO.class))),
-                    @ApiResponse(responseCode = "422", description = "Validation error.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
-                    @ApiResponse(responseCode = "403", description = "Forbidden.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
-                    @ApiResponse(responseCode = "500", description = "Internal server error.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
-                    @ApiResponse(responseCode = "503", description = "Service unavailable.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
-            })
+    @Operation(summary = "Update a habit.", description = "Updates habit partially.")
+    @ApiResponse(responseCode = "200", description = "Habit successfully updated.")
+    @RequestBody(
+            content = @Content(
+                    mediaType = "application/json",
+                    examples = @ExampleObject(
+                            name = "UpdateHabitRequest",
+                            summary = "Example habit update request",
+                            value = "{\n" +
+                                    "  \"description\": \"Drink 3L of water per day\",\n" +
+                                    "  \"active\": false\n" +
+                                    "}"
+                    )
+            )
+    )
     @PatchMapping("/{id}")
     public ResponseEntity<HabitResponseDTO> updateHabit(@PathVariable Long id,
                                                         @RequestBody @Valid HabitRequestDTO dto, BindingResult bindingResult) {
