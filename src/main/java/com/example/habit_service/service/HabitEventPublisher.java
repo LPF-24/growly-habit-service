@@ -16,4 +16,16 @@ public class HabitEventPublisher {
         kafkaTemplate.send("habit-events", message);
         System.out.println("Отправлено в Kafka: " + message);
     }
+
+    public void habitDeleted(Long habitId) {
+        String message = "Habit deleted: " + habitId;
+        kafkaTemplate.send("habit-events", message);
+        System.out.println("Отправлено в Kafka: " + message);
+    }
+
+    public void habitUpdated(Long habitId) {
+        String message = "Habit updated: " + habitId;
+        kafkaTemplate.send("habit-events", message);
+        System.out.println("Отправлено в Kafka: " + message);
+    }
 }
