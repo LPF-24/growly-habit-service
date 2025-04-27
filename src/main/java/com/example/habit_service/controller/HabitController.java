@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -39,9 +40,32 @@ public class HabitController {
                     @ApiResponse(responseCode = "200", description = "List of habits",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = HabitResponseDTO.class)))),
                     @ApiResponse(responseCode = "400", description = "Missing required parameters.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "HabitNotFound",
+                                            summary = "Example of 400 Missing Required Parameters",
+                                            value = "{\n" +
+                                                    "  \"status\": 400,\n" +
+                                                    "  \"error\": \"Missing Required Parameters\",\n" +
+                                                    "  \"message\": \"Missing required parameters.\",\n" +
+                                                    "  \"path\": \"/habits\"\n" +
+                                                    "}"
+                                    ))),
                     @ApiResponse(responseCode = "500", description = "Internal server error.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "Internal server error",
+                                            summary = "Example of 500 Internal Server Error",
+                                            value = "{\n" +
+                                                    "  \"status\": 500,\n" +
+                                                    "  \"error\": \"Internal Server Error\",\n" +
+                                                    "  \"path\": \"/habits\"\n" +
+                                                    "}"
+                                    )))
             })
     @GetMapping
     public ResponseEntity<List<HabitResponseDTO>> getAllHabits(@RequestParam Long personId) {
@@ -54,9 +78,32 @@ public class HabitController {
                     @ApiResponse(responseCode = "200", description = "Habit found",
                             content = @Content(schema = @Schema(implementation = HabitResponseDTO.class))),
                     @ApiResponse(responseCode = "404", description = "Habit not found.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "HabitNotFound",
+                                            summary = "Example of 404 Not Found",
+                                            value = "{\n" +
+                                                    "  \"status\": 404,\n" +
+                                                    "  \"error\": \"Not Found\",\n" +
+                                                    "  \"message\": \"Habit with id 5 not found.\",\n" +
+                                                    "  \"path\": \"/habits/5\"\n" +
+                                                    "}"
+                                    ))),
                     @ApiResponse(responseCode = "500", description = "Internal server error.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "Internal server error",
+                                            summary = "Example of 500 Internal Server Error",
+                                            value = "{\n" +
+                                                    "  \"status\": 500,\n" +
+                                                    "  \"error\": \"Internal Server Error\",\n" +
+                                                    "  \"path\": \"/habits/5\"\n" +
+                                                    "}"
+                                    )))
             })
     @GetMapping("/{id}")
     public ResponseEntity<HabitResponseDTO> getHabit(@PathVariable Long id) {
@@ -80,7 +127,20 @@ public class HabitController {
                     )
             ),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Habit successfully created.")
+                    @ApiResponse(responseCode = "200", description = "Habit successfully created."),
+                    @ApiResponse(responseCode = "500", description = "Internal server error.",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "Internal server error",
+                                            summary = "Example of 500 Internal Server Error",
+                                            value = "{\n" +
+                                                    "  \"status\": 500,\n" +
+                                                    "  \"error\": \"Internal Server Error\",\n" +
+                                                    "  \"path\": \"/habits\"\n" +
+                                                    "}"
+                                    )))
             }
     )
     public ResponseEntity<HabitResponseDTO> newHabit(@RequestBody @Valid HabitRequestDTO dto, BindingResult bindingResult) {
@@ -94,15 +154,76 @@ public class HabitController {
 
     @Operation(summary = "Delete a habit", description = "Deletes a habit by ID.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Habit successfully deleted."),
+                    @ApiResponse(responseCode = "200", description = "Habit successfully deleted.",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    examples = @ExampleObject(
+                                            name = "Successfully",
+                                            summary = "Example of 200 Successfully",
+                                            value = "{\n" +
+                                                    "  \"status\": 200,\n" +
+                                                    "  \"message\": \"Habit with id 5 successfully removed.\"\n" +
+                                                    "}",
+                                            externalValue = "", // <--- оставить пустым
+                                            description = "Successful delete response",
+                                            ref = "" // <--- оставить пустым
+                                    )
+
+                            )),
                     @ApiResponse(responseCode = "403", description = "Forbidden.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "Forbidden",
+                                            summary = "Example of 403 Forbidden",
+                                            value = "{\n" +
+                                                    "  \"status\": 403,\n" +
+                                                    "  \"error\": \"Forbidden\",\n" +
+                                                    "  \"message\": \"Forbidden\",\n" +
+                                                    "  \"path\": \"/habits/5\"\n" +
+                                                    "}"
+                                    ))),
                     @ApiResponse(responseCode = "401", description = "Unauthorized.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "Unauthorized",
+                                            summary = "Example of 401 Unauthorized",
+                                            value = "{\n" +
+                                                    "  \"status\": 401,\n" +
+                                                    "  \"error\": \"Unauthorized\",\n" +
+                                                    "  \"message\": \"Unauthorized.\",\n" +
+                                                    "  \"path\": \"/habits/5\"\n" +
+                                                    "}"
+                                    ))),
                     @ApiResponse(responseCode = "500", description = "Internal server error.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class))),
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "Internal server error",
+                                            summary = "Example of 500 Internal Server Error",
+                                            value = "{\n" +
+                                                    "  \"status\": 500,\n" +
+                                                    "  \"error\": \"Internal Server Error\",\n" +
+                                                    "  \"path\": \"/habits/5\"\n" +
+                                                    "}"
+                                    ))),
                     @ApiResponse(responseCode = "503", description = "Service unavailable.",
-                            content = @Content(schema = @Schema(implementation = ErrorResponseDTO.class)))
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            name = "Service unavailable",
+                                            summary = "Example of 503 Service unavailable.",
+                                            value = "{\n" +
+                                                    "  \"status\": 503,\n" +
+                                                    "  \"error\": \"Service unavailable\",\n" +
+                                                    "  \"path\": \"/habits/5\"\n" +
+                                                    "}"
+                                    )))
             })
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteHabit(@PathVariable Long id) {
@@ -111,18 +232,63 @@ public class HabitController {
         return ResponseEntity.ok("Habit with id " + id + " successfully removed.");
     }
 
-    @Operation(summary = "Update a habit.", description = "Updates habit partially.")
-    @ApiResponse(responseCode = "200", description = "Habit successfully updated.")
+    @Operation(summary = "Update a habit", description = "Updates a habit partially by ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Habit successfully updated."),
+            @ApiResponse(responseCode = "400", description = "Validation failed.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class),
+                            examples = @ExampleObject(
+                                    name = "ValidationError",
+                                    summary = "Example of 400 Validation Error",
+                                    value = "{\n" +
+                                            "  \"status\": 400,\n" +
+                                            "  \"error\": \"Bad Request\",\n" +
+                                            "  \"message\": \"Validation failed: name must not be blank\",\n" +
+                                            "  \"path\": \"/habits/5\"\n" +
+                                            "}"
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "Habit not found.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class),
+                            examples = @ExampleObject(
+                                    name = "HabitNotFound",
+                                    summary = "Example of 404 Habit Not Found",
+                                    value = "{\n" +
+                                            "  \"status\": 404,\n" +
+                                            "  \"error\": \"Not Found\",\n" +
+                                            "  \"message\": \"Habit with id 5 not found.\",\n" +
+                                            "  \"path\": \"/habits/5\"\n"
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "500", description = "Internal server error.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class),
+                            examples = @ExampleObject(
+                                    name = "InternalServerError",
+                                    summary = "Example of 500 Internal Server Error",
+                                    value = "{\n" +
+                                            "  \"status\": 500,\n" +
+                                            "  \"error\": \"Internal Server Error\",\n" +
+                                            "  \"message\": \"Unexpected error occurred.\",\n" +
+                                            "  \"path\": \"/habits/5\"\n"
+                            )
+                    )
+            )
+    })
     @RequestBody(
             content = @Content(
                     mediaType = "application/json",
                     examples = @ExampleObject(
                             name = "UpdateHabitRequest",
                             summary = "Example habit update request",
-                            value = "{\n" +
-                                    "  \"description\": \"Drink 3L of water per day\",\n" +
-                                    "  \"active\": false\n" +
-                                    "}"
+                            value = "{ \"description\": \"Drink 3L of water per day\", \"active\": false }"
                     )
             )
     )
