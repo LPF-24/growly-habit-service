@@ -14,9 +14,6 @@ public class OpenAPIConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .servers(List.of(
-                        new Server().url("http://localhost:8080")
-                ))
                 .info(new Info()
                         .title("Habit Service API")
                         .version("1.0")

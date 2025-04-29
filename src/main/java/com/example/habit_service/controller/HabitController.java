@@ -2,6 +2,7 @@ package com.example.habit_service.controller;
 
 import com.example.habit_service.dto.HabitRequestDTO;
 import com.example.habit_service.dto.HabitResponseDTO;
+import com.example.habit_service.dto.HabitUpdateDTO;
 import com.example.habit_service.exception.ErrorResponseDTO;
 import com.example.habit_service.exception.ErrorUtil;
 import com.example.habit_service.service.HabitEventPublisher;
@@ -19,6 +20,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -114,8 +116,8 @@ public class HabitController {
         return ResponseEntity.ok(habitService.getHabitById(id));
     }
 
-    /*@Operation(summary = "Create a habit.", description = "Adds a new habit.",
-            requestBody = @RequestBody(
+    @Operation(summary = "Create a habit.", description = "Adds a new habit.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(
@@ -146,9 +148,10 @@ public class HabitController {
                                                     "}"
                                     )))
             }
-    )*/
+    )
     @PostMapping
-    public ResponseEntity<HabitResponseDTO> newHabit(@RequestBody @Valid HabitRequestDTO dto, BindingResult bindingResult) {
+    public ResponseEntity<HabitResponseDTO> newHabit(@org.springframework.web.bind.annotation.RequestBody
+                                                         @Valid HabitRequestDTO dto, BindingResult bindingResult) {
         // Логирование для проверки, что приходит в DTO
         System.out.println("Received DTO in controller: " + dto.getName());
 
@@ -248,7 +251,7 @@ public class HabitController {
         return ResponseEntity.ok("Habit with id " + id + " successfully removed.");
     }
 
-    /*@Operation(summary = "Update a habit", description = "Updates a habit partially by ID.")
+    @Operation(summary = "Update a habit", description = "Updates a habit partially by ID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Habit successfully updated."),
             @ApiResponse(responseCode = "400", description = "Validation failed.",
@@ -298,7 +301,7 @@ public class HabitController {
                     )
             )
     })
-    @RequestBody(
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
             content = @Content(
                     mediaType = "application/json",
                     examples = @ExampleObject(
@@ -307,10 +310,11 @@ public class HabitController {
                             value = "{ \"description\": \"Drink 3L of water per day\", \"active\": false }"
                     )
             )
-    )*/
+    )
     @PatchMapping("/{id}")
     public ResponseEntity<HabitResponseDTO> updateHabit(@PathVariable Long id,
-                                                        @RequestBody @Valid HabitRequestDTO dto, BindingResult bindingResult) {
+                                                        @org.springframework.web.bind.annotation.RequestBody
+                                                        @Valid HabitUpdateDTO dto, BindingResult bindingResult) {
         if (bindingResult.hasErrors())
             ErrorUtil.throwIfHasErrors(bindingResult);
 
