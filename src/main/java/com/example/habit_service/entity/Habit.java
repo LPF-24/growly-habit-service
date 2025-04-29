@@ -12,7 +12,7 @@ public class Habit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //@NotBlank
+    @NotBlank
     @Column(name = "name", nullable = false)
     private String name;
 
