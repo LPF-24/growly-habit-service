@@ -18,19 +18,10 @@ public class HabitConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs.yaml"
-                        ).permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // разрешить preflight OPTIONS
-                        .requestMatchers(HttpMethod.GET, "/habits", "/habits/{id}").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/habits").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/habits/{id}").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/habits/{id}").permitAll()
+                        .anyRequest().permitAll()
                 )
                 .build();
     }

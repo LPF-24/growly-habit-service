@@ -33,9 +33,15 @@ public class HabitService {
     }
 
     public HabitResponseDTO createHabit(HabitRequestDTO dto) {
+        System.out.println("Mapping HabitRequestDTO to Habit");
+        System.out.println("DTO name: " + dto.getName());
         Habit habit = habitMapper.toEntity(dto);
+        System.out.println("habitRequestDTO successfully mapped to Habit in service.");
+        System.out.println(habit.getName());
         habit.setCreatedAt(LocalDate.now());
-        return habitMapper.toResponseDTO(habitRepository.save(habit));
+        habitRepository.save(habit);
+        System.out.println("habit saved successfully in service");
+        return habitMapper.toResponseDTO(habit);
     }
 
     public void deleteHabit(long habitId) {

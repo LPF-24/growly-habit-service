@@ -1,6 +1,7 @@
 package com.example.habit_service.dto;
 
 import com.example.habit_service.util.SwaggerConstants;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -9,7 +10,7 @@ import jakarta.validation.constraints.Size;
 
 public class HabitRequestDTO {
     @Schema(description = SwaggerConstants.NAME_DESC, example = SwaggerConstants.NAME_EXAMPLE)
-    @NotBlank(message = "The name of the habit should not be empty")
+    @NotNull(message = "The name of the habit should not be empty")
     @Size(min = 2, max = 255, message = "Product name must be between 2 and 255 characters")
     private String name;
 
@@ -22,11 +23,10 @@ public class HabitRequestDTO {
     private Boolean active;
 
     @Schema(description = SwaggerConstants.PERSON_ID_DESC, example = SwaggerConstants.PERSON_ID_EXAMPLE)
-    @NotEmpty(message = "Person id can't be empty.")
+    @NotNull(message = "Person ID must not be null")
     private Long personId;
 
-    public HabitRequestDTO() {
-    }
+    public HabitRequestDTO() {}
 
     public String getName() {
         return name;

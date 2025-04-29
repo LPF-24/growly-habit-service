@@ -6,16 +6,18 @@ import com.example.habit_service.exception.ErrorResponseDTO;
 import com.example.habit_service.exception.ErrorUtil;
 import com.example.habit_service.service.HabitEventPublisher;
 import com.example.habit_service.service.HabitService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -24,13 +26,15 @@ import java.util.List;
 
 @Tag(name = "Habit", description = "Endpoints for habit management.")
 @RestController
-@RequestMapping("/habits")
+@RequestMapping("/")
 public class HabitController {
 
+    private ObjectMapper objectMapper;
     private final HabitEventPublisher publisher;
     private final HabitService habitService;
 
-    public HabitController(HabitEventPublisher publisher, HabitService habitService) {
+    public HabitController(ObjectMapper objectMapper, HabitEventPublisher publisher, HabitService habitService) {
+        this.objectMapper = objectMapper;
         this.publisher = publisher;
         this.habitService = habitService;
     }
@@ -110,7 +114,7 @@ public class HabitController {
         return ResponseEntity.ok(habitService.getHabitById(id));
     }
 
-    @Operation(summary = "Create a habit.", description = "Adds a new habit.",
+    /*@Operation(summary = "Create a habit.", description = "Adds a new habit.",
             requestBody = @RequestBody(
                     content = @Content(
                             mediaType = "application/json",
@@ -142,13 +146,25 @@ public class HabitController {
                                                     "}"
                                     )))
             }
-    )
+    )*/
+    @PostMapping
     public ResponseEntity<HabitResponseDTO> newHabit(@RequestBody @Valid HabitRequestDTO dto, BindingResult bindingResult) {
-        if (bindingResult.hasErrors())
-            ErrorUtil.throwIfHasErrors(bindingResult);
+        // Логирование для проверки, что приходит в DTO
+        System.out.println("Received DTO in controller: " + dto.getName());
 
+        if (bindingResult.hasErrors()) {
+            // Логируем все ошибки валидации
+            bindingResult.getAllErrors().forEach(error -> {
+                System.out.println("Validation error: " + error.getDefaultMessage());
+            });
+            // Если есть ошибки, выбрасываем их
+            ErrorUtil.throwIfHasErrors(bindingResult);
+        }
+
+        // Если валидация прошла успешно, передаем DTO в сервис
         HabitResponseDTO response = habitService.createHabit(dto);
-        publisher.publishHabitCompleted(String.valueOf(response.getId()));
+
+        // Возвращаем успешно созданный объект
         return ResponseEntity.ok(response);
     }
 
@@ -232,7 +248,7 @@ public class HabitController {
         return ResponseEntity.ok("Habit with id " + id + " successfully removed.");
     }
 
-    @Operation(summary = "Update a habit", description = "Updates a habit partially by ID.")
+    /*@Operation(summary = "Update a habit", description = "Updates a habit partially by ID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Habit successfully updated."),
             @ApiResponse(responseCode = "400", description = "Validation failed.",
@@ -291,7 +307,7 @@ public class HabitController {
                             value = "{ \"description\": \"Drink 3L of water per day\", \"active\": false }"
                     )
             )
-    )
+    )*/
     @PatchMapping("/{id}")
     public ResponseEntity<HabitResponseDTO> updateHabit(@PathVariable Long id,
                                                         @RequestBody @Valid HabitRequestDTO dto, BindingResult bindingResult) {
