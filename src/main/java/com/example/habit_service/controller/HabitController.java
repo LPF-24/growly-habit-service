@@ -3,6 +3,7 @@ package com.example.habit_service.controller;
 import com.example.habit_service.dto.HabitRequestDTO;
 import com.example.habit_service.dto.HabitResponseDTO;
 import com.example.habit_service.dto.HabitUpdateDTO;
+import com.example.habit_service.dto.message.MessageResponseDTO;
 import com.example.habit_service.exception.ErrorResponseDTO;
 import com.example.habit_service.exception.ErrorUtil;
 import com.example.habit_service.service.HabitEventPublisher;
@@ -180,7 +181,6 @@ public class HabitController {
                                             name = "Successfully",
                                             summary = "Example of 200 Successfully",
                                             value = "{\n" +
-                                                    "  \"status\": 200,\n" +
                                                     "  \"message\": \"Habit with id 5 successfully removed.\"\n" +
                                                     "}",
                                             externalValue = "", // <--- оставить пустым
@@ -245,10 +245,10 @@ public class HabitController {
                                     )))
             })
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteHabit(@PathVariable Long id) {
+    public ResponseEntity<MessageResponseDTO> deleteHabit(@PathVariable Long id) {
         habitService.deleteHabit(id);
         publisher.habitDeleted(id);
-        return ResponseEntity.ok("Habit with id " + id + " successfully removed.");
+        return ResponseEntity.ok(new MessageResponseDTO("Habit with id " + id + " successfully removed."));
     }
 
     @Operation(summary = "Update a habit", description = "Updates a habit partially by ID.")
@@ -277,11 +277,14 @@ public class HabitController {
                             examples = @ExampleObject(
                                     name = "HabitNotFound",
                                     summary = "Example of 404 Habit Not Found",
-                                    value = "{\n" +
-                                            "  \"status\": 404,\n" +
-                                            "  \"error\": \"Not Found\",\n" +
-                                            "  \"message\": \"Habit with id 5 not found.\",\n" +
-                                            "  \"path\": \"/habits/5\"\n"
+                                    value = """
+                                            {
+                                              "status": 404,
+                                              "error": "Not Found",
+                                              "message": "Habit with id 5 not found.",
+                                              "path": "/habits/5"
+                                            }
+                                            """
                             )
                     )
             ),
@@ -296,7 +299,8 @@ public class HabitController {
                                             "  \"status\": 500,\n" +
                                             "  \"error\": \"Internal Server Error\",\n" +
                                             "  \"message\": \"Unexpected error occurred.\",\n" +
-                                            "  \"path\": \"/habits/5\"\n"
+                                            "  \"path\": \"/habits/5\"\n" +
+                                            "}"
                             )
                     )
             )
