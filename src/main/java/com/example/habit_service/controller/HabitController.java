@@ -6,6 +6,7 @@ import com.example.habit_service.dto.HabitUpdateDTO;
 import com.example.habit_service.dto.message.MessageResponseDTO;
 import com.example.habit_service.exception.ErrorResponseDTO;
 import com.example.habit_service.exception.ErrorUtil;
+import com.example.habit_service.security.PersonDetails;
 import com.example.habit_service.service.HabitEventPublisher;
 import com.example.habit_service.service.HabitService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,10 +19,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,8 +74,13 @@ public class HabitController {
                                     )))
             })
     @GetMapping
-    public ResponseEntity<List<HabitResponseDTO>> getAllHabits(@RequestParam Long personId) {
+    public ResponseEntity<List<HabitResponseDTO>> getAllHabits(@AuthenticationPrincipal PersonDetails user) {
+        System.out.println("Authenticated user: " + (user != null ? user.getUsername() : "null"));
+        Long personId = user.getId();
+        System.out.println("User id: " + personId);
+
         List<HabitResponseDTO> habits = habitService.getAllHabitsByPersonId(personId);
+        System.out.println("Habits successfully received");
         return ResponseEntity.ok(habits);
     }
 
@@ -152,7 +156,8 @@ public class HabitController {
     )
     @PostMapping
     public ResponseEntity<HabitResponseDTO> newHabit(@org.springframework.web.bind.annotation.RequestBody
-                                                         @Valid HabitRequestDTO dto, BindingResult bindingResult) {
+                                                         @Valid HabitRequestDTO dto, BindingResult bindingResult,
+                                                     @AuthenticationPrincipal PersonDetails user) {
         // Логирование для проверки, что приходит в DTO
         System.out.println("Received DTO in controller: " + dto.getName());
 
@@ -166,7 +171,7 @@ public class HabitController {
         }
 
         // Если валидация прошла успешно, передаем DTO в сервис
-        HabitResponseDTO response = habitService.createHabit(dto);
+        HabitResponseDTO response = habitService.createHabit(user.getId(), dto);
 
         // Возвращаем успешно созданный объект
         return ResponseEntity.ok(response);

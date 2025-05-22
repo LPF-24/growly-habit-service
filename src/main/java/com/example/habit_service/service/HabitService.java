@@ -8,6 +8,7 @@ import com.example.habit_service.mapper.HabitMapper;
 import com.example.habit_service.repository.HabitRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.BadRequestException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +28,14 @@ public class HabitService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("isAuthenticated() && hasRole('USER')")
     public List<HabitResponseDTO> getAllHabitsByPersonId(long personId) {
+        System.out.println("getAllHabitsByPersonId started");
         return habitRepository.findByPersonId(personId).stream().map(habitMapper::toResponseDTO).toList();
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("@habitSecurity.isOwner(#habitId)")
     public HabitResponseDTO getHabitById(long habitId) {
         Habit foundHabit = habitRepository.findById(habitId)
                 .orElseThrow(() -> new EntityNotFoundException("Habit with this id can't be found!"));
@@ -40,24 +44,28 @@ public class HabitService {
     }
 
     @Transactional
-    public HabitResponseDTO createHabit(HabitRequestDTO dto) {
+    @PreAuthorize("isAuthenticated() && hasRole('USER')")
+    public HabitResponseDTO createHabit(Long id, HabitRequestDTO dto) {
         System.out.println("Mapping HabitRequestDTO to Habit");
         System.out.println("DTO name: " + dto.getName());
         Habit habit = habitMapper.toEntity(dto);
         System.out.println("habitRequestDTO successfully mapped to Habit in service.");
         System.out.println(habit.getName());
         habit.setCreatedAt(LocalDate.now());
+        habit.setPersonId(id);
         habitRepository.save(habit);
         System.out.println("habit saved successfully in service");
         return habitMapper.toResponseDTO(habit);
     }
 
     @Transactional
+    @PreAuthorize("@habitSecurity.isOwner(#habitId)")
     public void deleteHabit(long habitId) {
         habitRepository.deleteById(habitId);
     }
 
     @Transactional
+    @PreAuthorize("@habitSecurity.isOwner(#habitId)")
     public HabitResponseDTO updateHabit(long habitId, HabitUpdateDTO dto) {
         Habit habitToUpdate = habitRepository.findById(habitId)
                 .orElseThrow(() -> new EntityNotFoundException("Habit with id " + habitId + " not found"));

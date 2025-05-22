@@ -22,10 +22,6 @@ public class HabitRequestDTO {
     @NotNull(message = "Active status can't be empty")
     private Boolean active;
 
-    @Schema(description = SwaggerConstants.PERSON_ID_DESC, example = SwaggerConstants.PERSON_ID_EXAMPLE)
-    @NotNull(message = "Person ID must not be null")
-    private Long personId;
-
     public HabitRequestDTO() {}
 
     public String getName() {
@@ -50,13 +46,5 @@ public class HabitRequestDTO {
 
     public void setActive(Boolean active) {
         this.active = active;
-    }
-
-    public Long getPersonId() {
-        return personId;
-    }
-
-    public void setPersonId(Long personId) {
-        this.personId = personId;
     }
 }
