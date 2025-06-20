@@ -28,7 +28,7 @@ public class HabitService {
     }
 
     @Transactional(readOnly = true)
-    @PreAuthorize("isAuthenticated() && hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public List<HabitResponseDTO> getAllHabitsByPersonId(long personId) {
         System.out.println("getAllHabitsByPersonId started");
         return habitRepository.findByPersonId(personId).stream().map(habitMapper::toResponseDTO).toList();
@@ -44,7 +44,7 @@ public class HabitService {
     }
 
     @Transactional
-    @PreAuthorize("isAuthenticated() && hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public HabitResponseDTO createHabit(Long id, HabitRequestDTO dto) {
         System.out.println("Mapping HabitRequestDTO to Habit");
         System.out.println("DTO name: " + dto.getName());
