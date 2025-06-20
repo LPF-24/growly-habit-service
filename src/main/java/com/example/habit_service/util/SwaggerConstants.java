@@ -18,4 +18,7 @@ public class SwaggerConstants {
 
     public static final String CREATED_AT_DESC = "Date of habit creation.";
     public static final String CREATED_AT_EXAMPLE = "2025-04-25";
+
+    public static final String MESSAGE_DESC = "Field for any messages.";
+    public static final String MESSAGE_EXAMPLE = "Habit with id 5 successfully removed.";
 }

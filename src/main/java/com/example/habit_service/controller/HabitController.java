@@ -9,7 +9,6 @@ import com.example.habit_service.exception.ErrorUtil;
 import com.example.habit_service.security.PersonDetails;
 import com.example.habit_service.service.HabitEventPublisher;
 import com.example.habit_service.service.HabitService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,13 +29,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/")
 public class HabitController {
-
-    private ObjectMapper objectMapper;
     private final HabitEventPublisher publisher;
     private final HabitService habitService;
 
-    public HabitController(ObjectMapper objectMapper, HabitEventPublisher publisher, HabitService habitService) {
-        this.objectMapper = objectMapper;
+    public HabitController(HabitEventPublisher publisher, HabitService habitService) {
         this.publisher = publisher;
         this.habitService = habitService;
     }
