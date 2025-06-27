@@ -6,8 +6,11 @@ import com.example.habit_service.dto.HabitUpdateDTO;
 import com.example.habit_service.entity.Habit;
 import com.example.habit_service.mapper.HabitMapper;
 import com.example.habit_service.repository.HabitRepository;
+import com.example.habit_service.security.JWTFilter;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.BadRequestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ import java.util.stream.Stream;
 public class HabitService {
     private final HabitRepository habitRepository;
     private final HabitMapper habitMapper;
+    private final Logger logger = LoggerFactory.getLogger(HabitService.class);
 
     public HabitService(HabitRepository habitRepository, HabitMapper habitMapper) {
         this.habitRepository = habitRepository;
@@ -30,7 +34,7 @@ public class HabitService {
     @Transactional(readOnly = true)
     @PreAuthorize("isAuthenticated()")
     public List<HabitResponseDTO> getAllHabitsByPersonId(long personId) {
-        System.out.println("getAllHabitsByPersonId started");
+        logger.info("getAllHabitsByPersonId started");
         return habitRepository.findByPersonId(personId).stream().map(habitMapper::toResponseDTO).toList();
     }
 
@@ -46,15 +50,15 @@ public class HabitService {
     @Transactional
     @PreAuthorize("isAuthenticated()")
     public HabitResponseDTO createHabit(Long id, HabitRequestDTO dto) {
-        System.out.println("Mapping HabitRequestDTO to Habit");
-        System.out.println("DTO name: " + dto.getName());
+        logger.info("Mapping HabitRequestDTO to Habit");
+        logger.debug("DTO name: {}", dto.getName());
         Habit habit = habitMapper.toEntity(dto);
-        System.out.println("habitRequestDTO successfully mapped to Habit in service.");
-        System.out.println(habit.getName());
+        logger.debug("habitRequestDTO successfully mapped to Habit in service.");
+        logger.info(habit.getName());
         habit.setCreatedAt(LocalDate.now());
         habit.setPersonId(id);
         habitRepository.save(habit);
-        System.out.println("habit saved successfully in service");
+       logger.info("habit saved successfully in service");
         return habitMapper.toResponseDTO(habit);
     }
 

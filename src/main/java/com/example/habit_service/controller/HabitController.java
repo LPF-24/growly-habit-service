@@ -18,6 +18,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
@@ -31,6 +33,7 @@ import java.util.List;
 public class HabitController {
     private final HabitEventPublisher publisher;
     private final HabitService habitService;
+    private final Logger logger = LoggerFactory.getLogger(HabitController.class);
 
     public HabitController(HabitEventPublisher publisher, HabitService habitService) {
         this.publisher = publisher;
@@ -71,12 +74,12 @@ public class HabitController {
             })
     @GetMapping("/all-habits")
     public ResponseEntity<List<HabitResponseDTO>> getAllHabits(@AuthenticationPrincipal PersonDetails user) {
-        System.out.println("Authenticated user: " + (user != null ? user.getUsername() : "null"));
+        logger.info("Authenticated user: {}", (user != null ? user.getUsername() : "null"));
         Long personId = user.getId();
-        System.out.println("User id: " + personId);
+        logger.info("User id: {}", personId);
 
         List<HabitResponseDTO> habits = habitService.getAllHabitsByPersonId(personId);
-        System.out.println("Habits successfully received");
+        logger.info("Habits successfully received");
         return ResponseEntity.ok(habits);
     }
 
@@ -155,12 +158,12 @@ public class HabitController {
                                                          @Valid HabitRequestDTO dto, BindingResult bindingResult,
                                                      @AuthenticationPrincipal PersonDetails user) {
         // Логирование для проверки, что приходит в DTO
-        System.out.println("Received DTO in controller: " + dto.getName());
+        logger.info("Received DTO in controller: {}", dto.getName());
 
         if (bindingResult.hasErrors()) {
             // Логируем все ошибки валидации
             bindingResult.getAllErrors().forEach(error -> {
-                System.out.println("Validation error: " + error.getDefaultMessage());
+                logger.error("Validation error: {}", error.getDefaultMessage());
             });
             // Если есть ошибки, выбрасываем их
             ErrorUtil.throwIfHasErrors(bindingResult);
