@@ -69,7 +69,7 @@ public class HabitController {
                                                     "}"
                                     )))
             })
-    @GetMapping
+    @GetMapping("/all-habits")
     public ResponseEntity<List<HabitResponseDTO>> getAllHabits(@AuthenticationPrincipal PersonDetails user) {
         System.out.println("Authenticated user: " + (user != null ? user.getUsername() : "null"));
         Long personId = user.getId();
@@ -150,7 +150,7 @@ public class HabitController {
                                     )))
             }
     )
-    @PostMapping
+    @PostMapping("/create-habit")
     public ResponseEntity<HabitResponseDTO> newHabit(@org.springframework.web.bind.annotation.RequestBody
                                                          @Valid HabitRequestDTO dto, BindingResult bindingResult,
                                                      @AuthenticationPrincipal PersonDetails user) {
@@ -245,7 +245,7 @@ public class HabitController {
                                                     "}"
                                     )))
             })
-    @DeleteMapping("/{id}")
+    @DeleteMapping("delete/{id}")
     public ResponseEntity<MessageResponseDTO> deleteHabit(@PathVariable Long id) {
         habitService.deleteHabit(id);
         publisher.habitDeleted(id);
@@ -316,7 +316,7 @@ public class HabitController {
                     )
             )
     )
-    @PatchMapping("/{id}")
+    @PatchMapping("update/{id}")
     public ResponseEntity<HabitResponseDTO> updateHabit(@PathVariable Long id,
                                                         @org.springframework.web.bind.annotation.RequestBody
                                                         @Valid HabitUpdateDTO dto, BindingResult bindingResult) {
