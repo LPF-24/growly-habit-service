@@ -1,31 +1,56 @@
 server:
-  port:
+  port: 8082
 
 spring:
   application:
     name: habit-service
 
   datasource:
-    url:
-    driver-class-name:
+    url: jdbc:postgresql://habit-db:5432/
     username:
     password:
-    hikari:
-      maximum-pool-size: 5
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto:
+    show-sql:
     properties:
       hibernate:
-        format_sql: true
-    database-platform:
+        format_sql:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: habit-group
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://eureka-server:8761/eureka
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Habit Service
+        url: /v3/api-docs
+  api-docs:
+    path: /v3/api-docs
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+  show-actuator: false
+
+jwt_secret:
+
+logging:
+  level:
+    root:
+    org:
+      springframework:
+        security:
+        orm.jpa:
+        jdbc.core:
+    com.netflix.discovery:
+    com.netflix.eureka:
+    org.apache.kafka:
+    org.springframework.kafka:
