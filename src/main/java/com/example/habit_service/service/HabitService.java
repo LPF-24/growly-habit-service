@@ -11,9 +11,11 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.ws.rs.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -82,7 +84,7 @@ public class HabitService {
         ).allMatch(Objects::isNull);
 
         if (allFieldsNull) {
-            throw new BadRequestException("Nothing to update");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nothing to update");
         }
 
         habitMapper.updateHabitFromDtoWithFixedFields(dto, habitToUpdate);

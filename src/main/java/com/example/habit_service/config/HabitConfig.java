@@ -38,8 +38,8 @@ public class HabitConfig {
                                 "/swagger-resources/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        .requestMatchers("/all-habits", "/id", "/create-habit", "delete/{id}",
-                                "update/{id}").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/all-habits", "/id", "/create-habit", "/delete/{id}",
+                                "/update/{id}").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
