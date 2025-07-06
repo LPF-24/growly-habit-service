@@ -14,7 +14,7 @@ public class HabitEventPublisher {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void publishHabitCompleted(String habitId) {
+    public void publishHabitCompleted(Long habitId) {
         String message = "Habit completed: " + habitId;
         kafkaTemplate.send("habit-events", message);
         logger.info("Sent to Kafka: {}", message);
