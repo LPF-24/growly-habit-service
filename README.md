@@ -57,11 +57,10 @@ JWT_SECRET=internship
 
 ## 🐳 Docker
 
-To build and run the service:
+To rebuild and run the service:
 
 ```bash
-docker build -t habit-service .
-docker run -p 8082:8082 --env-file .env habit-service
+docker compose up --build habit-service
 ```
 
 ## 🧪 Testing
@@ -79,4 +78,8 @@ User data (e.g., userId) is extracted from the JWT
 Works behind gateway-service
 
 ## 🔗 Related
-Part of the growly-infra project.
+Part of the [growly-infra](https://github.com/LPF-24/growly-infra) project.
+
+---
+
+> 📈 **habit-service** — helps users stay consistent and build better routines.
