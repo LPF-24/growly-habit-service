@@ -157,22 +157,17 @@ public class HabitController {
     public ResponseEntity<HabitResponseDTO> newHabit(@org.springframework.web.bind.annotation.RequestBody
                                                          @Valid HabitRequestDTO dto, BindingResult bindingResult,
                                                      @AuthenticationPrincipal PersonDetails user) {
-        // Логирование для проверки, что приходит в DTO
         logger.info("Received DTO in controller: {}", dto.getName());
 
         if (bindingResult.hasErrors()) {
-            // Логируем все ошибки валидации
             bindingResult.getAllErrors().forEach(error -> {
                 logger.error("Validation error: {}", error.getDefaultMessage());
             });
-            // Если есть ошибки, выбрасываем их
             ErrorUtil.throwIfHasErrors(bindingResult);
         }
 
-        // Если валидация прошла успешно, передаем DTO в сервис
         HabitResponseDTO response = habitService.createHabit(user.getId(), dto);
 
-        // Возвращаем успешно созданный объект
         return ResponseEntity.ok(response);
     }
 
