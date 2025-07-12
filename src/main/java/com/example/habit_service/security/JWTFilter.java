@@ -64,7 +64,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
-            logger.debug("Decoded JWT ID = " + id);
+            logger.info("JWT decoded: id={}, username={}, role={}", id, username, role);
         } catch (Exception e) {
             logger.error("JWT filter error: {}", e.getMessage(), e);
         }
