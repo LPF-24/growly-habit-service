@@ -43,9 +43,6 @@ public class HabitControllerTests {
     @Autowired private JWTUtil jwtUtil;
 
     @MockBean
-    private HabitSecurity habitSecurity;
-
-    @MockBean
     private KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
@@ -147,8 +144,6 @@ public class HabitControllerTests {
 
             Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(auth);
-
-            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
 
             mockMvc.perform(get("/" + habit.getId())
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
@@ -302,9 +297,6 @@ public class HabitControllerTests {
             Habit habit = createSampleHabit(personId, "Test Habit", true, "desc");
             habitRepository.save(habit);
 
-            // Мокаем isOwner
-            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
-
             // Устанавливаем аутентификацию
             Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(auth);
@@ -326,9 +318,6 @@ public class HabitControllerTests {
 
             Habit habit = createSampleHabit(999L, "Alien Habit", true, "not yours");
             habitRepository.save(habit);
-
-            // isOwner возвращает false
-            when(habitSecurity.isOwner(habit.getId())).thenReturn(false);
 
             Authentication auth = new UsernamePasswordAuthenticationToken(
                     new PersonDetails(person), null, List.of(() -> "ROLE_USER"));
@@ -381,9 +370,6 @@ public class HabitControllerTests {
                             }
                             """;
 
-            // Мокаем проверку владельца
-            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
-
             // Аутентификация
             Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(auth);
@@ -411,8 +397,6 @@ public class HabitControllerTests {
             Habit habit = createSampleHabit(999L, "Other habit", true, "not yours");
             habitRepository.save(habit);
 
-            when(habitSecurity.isOwner(habit.getId())).thenReturn(false);
-
             Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(auth);
 
@@ -439,8 +423,6 @@ public class HabitControllerTests {
             Habit habit = createSampleHabit(personId, "Name", true, "desc");
             habitRepository.save(habit);
 
-            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
-
             Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(auth);
 
@@ -461,15 +443,13 @@ public class HabitControllerTests {
         }
 
         @Test
-        void updateHabit_shouldReturn404_whenHabitDoesNotExist() throws Exception {
+        void updateHabit_shouldReturn403_whenHabitDoesNotExist() throws Exception {
             Long personId = 123L;
             Person person = createSamplePerson(personId, "testuser", "ROLE_USER");
             PersonDetails personDetails = new PersonDetails(person);
             String token = jwtUtil.generateAccessToken(person.getId(), person.getUsername(), person.getRole());
 
             Long nonexistentId = 999L;
-
-            when(habitSecurity.isOwner(nonexistentId)).thenReturn(true);
 
             Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(auth);
@@ -482,8 +462,9 @@ public class HabitControllerTests {
                                         "name": "Updated"
                                     }
                                     """))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message").value("error: Habit with id 999 not found"));
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status").value(403))
+                    .andExpect(jsonPath("$.message").value("Access Denied"));
         }
 
         @Test
@@ -495,8 +476,6 @@ public class HabitControllerTests {
 
             Habit habit = createSampleHabit(personId, "Name", true, "desc");
             habitRepository.save(habit);
-
-            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
 
             Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(auth);
