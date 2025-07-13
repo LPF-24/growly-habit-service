@@ -1,4 +1,4 @@
-package com.example.habit_service.controller;
+package com.example.habit_service.integration.controller;
 
 import com.example.habit_service.dto.UserDeletedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

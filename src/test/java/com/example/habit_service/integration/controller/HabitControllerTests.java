@@ -1,7 +1,6 @@
-package com.example.habit_service.controller;
+package com.example.habit_service.integration.controller;
 
 import com.example.habit_service.HabitServiceApplication;
-import com.example.habit_service.dto.HabitRequestDTO;
 import com.example.habit_service.entity.Habit;
 import com.example.habit_service.repository.HabitRepository;
 import com.example.habit_service.security.HabitSecurity;
@@ -347,7 +346,7 @@ public class HabitControllerTests {
             SecurityContextHolder.clearContext();
 
             mockMvc.perform(delete("/delete/1"))
-                    .andExpect(status().isForbidden()); // или .isUnauthorized(), если фильтр обрабатывает
+                    .andExpect(status().isForbidden());
         }
 
         @Test

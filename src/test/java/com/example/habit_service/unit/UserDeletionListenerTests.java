@@ -1,4 +1,4 @@
-package com.example.habit_service;
+package com.example.habit_service.unit;
 
 import com.example.habit_service.dto.UserDeletedEvent;
 import com.example.habit_service.entity.Habit;
@@ -10,7 +10,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -1,4 +1,4 @@
-package com.example.habit_service;
+package com.example.habit_service.unit;
 
 import com.example.habit_service.service.HabitEventPublisher;
 import org.junit.jupiter.api.BeforeEach;

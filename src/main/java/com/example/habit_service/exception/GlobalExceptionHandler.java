@@ -3,7 +3,6 @@ package com.example.habit_service.exception;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
-import jakarta.ws.rs.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -43,7 +42,7 @@ public class GlobalExceptionHandler {
         return new ErrorResponseDTO(400, "HttpMessageNotReadableException", "Malformed or missing request body", request.getRequestURI());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Map<String, String>> handleBadRequestException(BadRequestException e) {
         Map<String, String> response = new HashMap<>();
         response.put("error", e.getMessage());
