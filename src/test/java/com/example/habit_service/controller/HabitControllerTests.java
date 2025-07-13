@@ -4,6 +4,7 @@ import com.example.habit_service.HabitServiceApplication;
 import com.example.habit_service.dto.HabitRequestDTO;
 import com.example.habit_service.entity.Habit;
 import com.example.habit_service.repository.HabitRepository;
+import com.example.habit_service.security.HabitSecurity;
 import com.example.habit_service.security.JWTUtil;
 import com.example.habit_service.security.Person;
 import com.example.habit_service.security.PersonDetails;
@@ -25,9 +26,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -42,9 +44,12 @@ public class HabitControllerTests {
     @Autowired private JWTUtil jwtUtil;
 
     @MockBean
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private HabitSecurity habitSecurity;
 
     @MockBean
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Autowired
     private HabitEventPublisher habitEventPublisher;
 
     @AfterEach
@@ -143,6 +148,8 @@ public class HabitControllerTests {
 
             Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(auth);
+
+            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
 
             mockMvc.perform(get("/" + habit.getId())
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
@@ -280,6 +287,231 @@ public class HabitControllerTests {
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.message").value("Malformed or missing request body"));
+        }
+    }
+
+    @Nested
+    class DeleteHabitTests {
+        @Test
+        void deleteHabit_shouldReturn200_whenUserIsOwner() throws Exception {
+            // Подготовка пользователя и привычки
+            Long personId = 123L;
+            Person person = createSamplePerson(personId, "testuser", "ROLE_USER");
+            PersonDetails personDetails = new PersonDetails(person);
+            String token = jwtUtil.generateAccessToken(person.getId(), person.getUsername(), person.getRole());
+
+            Habit habit = createSampleHabit(personId, "Test Habit", true, "desc");
+            habitRepository.save(habit);
+
+            // Мокаем isOwner
+            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
+
+            // Устанавливаем аутентификацию
+            Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            mockMvc.perform(delete("/delete/" + habit.getId())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Habit with id " + habit.getId() + " successfully removed."));
+
+            // Проверка, что событие отправлено
+            verify(kafkaTemplate, times(1)).send("habit-events", "Habit deleted: " + habit.getId());
+        }
+
+        @Test
+        void deleteHabit_shouldReturn403_whenUserIsNotOwner() throws Exception {
+            Long personId = 123L;
+            Person person = createSamplePerson(personId, "user", "ROLE_USER");
+            String token = jwtUtil.generateAccessToken(person.getId(), person.getUsername(), person.getRole());
+
+            Habit habit = createSampleHabit(999L, "Alien Habit", true, "not yours");
+            habitRepository.save(habit);
+
+            // isOwner возвращает false
+            when(habitSecurity.isOwner(habit.getId())).thenReturn(false);
+
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                    new PersonDetails(person), null, List.of(() -> "ROLE_USER"));
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            mockMvc.perform(delete("/delete/" + habit.getId())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status").value(403))
+                    .andExpect(jsonPath("$.path").value("/delete/" + habit.getId()));
+        }
+
+        @Test
+        void deleteHabit_shouldReturn403_whenTokenIsMissing() throws Exception {
+            SecurityContextHolder.clearContext();
+
+            mockMvc.perform(delete("/delete/1"))
+                    .andExpect(status().isForbidden()); // или .isUnauthorized(), если фильтр обрабатывает
+        }
+
+        @Test
+        void deleteHabit_shouldReturn403_whenPathVariableIsInvalid() throws Exception {
+            Person person = createSamplePerson(1L, "user", "ROLE_USER");
+            String token = jwtUtil.generateAccessToken(person.getId(), person.getUsername(), person.getRole());
+
+            mockMvc.perform(delete("/delete/abc")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.path").value("/delete/abc"));
+        }
+    }
+
+    @Nested
+    class UpdateHabitTests {
+        @Test
+        void updateHabit_shouldReturn200_whenUserIsOwnerAndDataIsValid() throws Exception {
+            Long personId = 123L;
+            Person person = createSamplePerson(personId, "testuser", "ROLE_USER");
+            PersonDetails personDetails = new PersonDetails(person);
+            String token = jwtUtil.generateAccessToken(person.getId(), person.getUsername(), person.getRole());
+
+            // Сохраняем привычку
+            Habit habit = createSampleHabit(personId, "Old Name", true, "Old description");
+            habitRepository.save(habit);
+
+            // Обновляем только name
+            String json = """
+                            {
+                                "name": "Updated Name"
+                            }
+                            """;
+
+            // Мокаем проверку владельца
+            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
+
+            // Аутентификация
+            Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            mockMvc.perform(patch("/update/" + habit.getId())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.name").value("Updated Name"))
+                    .andExpect(jsonPath("$.description").value("Old description"))
+                    .andExpect(jsonPath("$.active").value(true));
+
+            // Проверка отправки события
+            verify(kafkaTemplate, times(1)).send("habit-events", "Habit updated: " + habit.getId());
+        }
+
+        @Test
+        void updateHabit_shouldReturn403_whenUserIsNotOwner() throws Exception {
+            Long personId = 123L;
+            Person person = createSamplePerson(personId, "testuser", "ROLE_USER");
+            PersonDetails personDetails = new PersonDetails(person);
+            String token = jwtUtil.generateAccessToken(person.getId(), person.getUsername(), person.getRole());
+
+            Habit habit = createSampleHabit(999L, "Other habit", true, "not yours");
+            habitRepository.save(habit);
+
+            when(habitSecurity.isOwner(habit.getId())).thenReturn(false);
+
+            Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            mockMvc.perform(patch("/update/" + habit.getId())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                            {
+                                "name": "Updated Name"
+                            }
+                            """))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status").value(403))
+                    .andExpect(jsonPath("$.path").value("/update/" + habit.getId()));
+        }
+
+        @Test
+        void updateHabit_shouldReturn500_whenAllFieldsAreNull() throws Exception {
+            Long personId = 123L;
+            Person person = createSamplePerson(personId, "testuser", "ROLE_USER");
+            PersonDetails personDetails = new PersonDetails(person);
+            String token = jwtUtil.generateAccessToken(person.getId(), person.getUsername(), person.getRole());
+
+            Habit habit = createSampleHabit(personId, "Name", true, "desc");
+            habitRepository.save(habit);
+
+            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
+
+            Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            mockMvc.perform(patch("/update/" + habit.getId())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {
+                                        "name": null,
+                                        "description": null,
+                                        "active": null,
+                                        "personId": null
+                                    }
+                                    """))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.error").value("Internal server error"));
+        }
+
+        @Test
+        void updateHabit_shouldReturn404_whenHabitDoesNotExist() throws Exception {
+            Long personId = 123L;
+            Person person = createSamplePerson(personId, "testuser", "ROLE_USER");
+            PersonDetails personDetails = new PersonDetails(person);
+            String token = jwtUtil.generateAccessToken(person.getId(), person.getUsername(), person.getRole());
+
+            Long nonexistentId = 999L;
+
+            when(habitSecurity.isOwner(nonexistentId)).thenReturn(true);
+
+            Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            mockMvc.perform(patch("/update/" + nonexistentId)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {
+                                        "name": "Updated"
+                                    }
+                                    """))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.message").value("error: Habit with id 999 not found"));
+        }
+
+        @Test
+        void updateHabit_shouldReturn400_whenNameIsTooShort() throws Exception {
+            Long personId = 123L;
+            Person person = createSamplePerson(personId, "testuser", "ROLE_USER");
+            PersonDetails personDetails = new PersonDetails(person);
+            String token = jwtUtil.generateAccessToken(person.getId(), person.getUsername(), person.getRole());
+
+            Habit habit = createSampleHabit(personId, "Name", true, "desc");
+            habitRepository.save(habit);
+
+            when(habitSecurity.isOwner(habit.getId())).thenReturn(true);
+
+            Authentication auth = new UsernamePasswordAuthenticationToken(personDetails, null, personDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            mockMvc.perform(patch("/update/" + habit.getId())
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {
+                                        "name": "A"
+                                    }
+                                    """))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error", containsString("name - Product name must be between 2 and 255 characters")));
         }
     }
 
